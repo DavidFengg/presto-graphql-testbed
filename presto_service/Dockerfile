@@ -1,4 +1,5 @@
-FROM centos:latest
+# latest versions of centos do not include python automatically installed
+FROM centos:7
 RUN yum -y install java-1.8.0-openjdk
 RUN mkdir /data
 RUN mkdir -p /srv/presto/etc/catalog
