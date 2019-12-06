@@ -1,0 +1,32 @@
+{
+    "example": [
+        {
+            "name": "numbers",
+            "columns": [
+                {
+                    "name": "value",
+                    "type": "BIGINT"
+                }
+            ],
+            "sources": [
+                "http://docker.for.mac.localhost:8000/count" 
+            ]
+        },
+        {
+            "name": "test",
+            "columns": [
+                {
+                    "name": "alt",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "chrom",
+                    "type": "VARCHAR"
+                }
+            ],
+            "sources": [
+                "http://docker.for.mac.localhost:8000/test3v2"
+            ]
+        }
+    ]
+}

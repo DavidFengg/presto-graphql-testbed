@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -37,11 +38,14 @@ var err error
 
 // Go Presto Connector
 func main() {
-	dsn := "http://user@localhost:8080?catalog=default&schema=test"
+	dsn := "http://user@docker.for.mac.localhost:8080?catalog=default&schema=test"
 	db, err = sqlx.Open("presto", dsn)
 
 	if err != nil {
-		panic(err.Error())
+		for err != nil {
+			db, err = sqlx.Open("presto", dsn)
+		}
+		// panic(err.Error())
 	}
 
 	fmt.Println("Server is running")
@@ -52,7 +56,8 @@ func main() {
 	origins := handlers.AllowedOrigins([]string{"*"})
 
 	// routes
-	// tables should be individual endpoints
+	// tables should be individual endpoints?
+	router.HandleFunc("/", home).Methods("GET")
 	router.HandleFunc("/count", getCount).Methods("GET")
 	router.HandleFunc("/column", getColumn).Methods("GET")
 	router.HandleFunc("/variants", getVariants).Methods("GET")
@@ -66,6 +71,24 @@ func main() {
 	router.HandleFunc("/test3v2", testJoin2).Methods("GET")
 
 	log.Fatal(http.ListenAndServe(":8000", handlers.CORS(headers, methods, origins)(router)))
+}
+
+func home(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	enableCORS(&w)
+
+	b, _ := ioutil.ReadFile("./example.json")
+	rawIn := json.RawMessage(string(b))
+
+	var objmap map[string]*json.RawMessage
+	err := json.Unmarshal(rawIn, &objmap)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(objmap)
+
+	json.NewEncoder(w).Encode(objmap)
+	// json.NewEncoder(w).Encode("../example.json")
 }
 
 func getCount(w http.ResponseWriter, r *http.Request) {
@@ -212,7 +235,7 @@ func testJoin2(w http.ResponseWriter, r *http.Request) {
 
 	field := r.URL.Query().Get("limit")
 
-	queryString := fmt.Sprintf("WITH a AS (SELECT variant_id, patient_id FROM mysql.var_db.calls), b AS (SELECT code.text, subject.referenceid FROM mongodb.fhir.conditions), c AS (SELECT variant_id, chrom, start, ref, alt, gene, aa_change FROM mysql.var_db.variants), d AS (SELECT a.*, b.* FROM a JOIN b ON a.patient_id = b.referenceid) SELECT c.*, d.* FROM d JOIN c ON d.variant_id = c.variant_id %s", selectLimit(field))
+	queryString := fmt.Sprintf("WITH a AS (SELECT variant_id, patient_id FROM mysql.var_db.calls), b AS (SELECT code.text, subject.referenceid FROM mongodb.fhir.conditions), c AS (SELECT variant_id, chrom, start, ref, alt, gene, aa_change FROM mysql.var_db.variants), d AS (SELECT a.*, b.* FROM a JOIN b ON a.patient_id = b.referenceid) SELECT c.alt, c.chrom FROM d JOIN c ON d.variant_id = c.variant_id %s", selectLimit(field))
 
 	// queryString := fmt.Sprintf("WITH a AS (SELECT variant_id, patient_id FROM mysql.var_db.calls),"+
 	// 	"c AS (SELECT variant_id, chrom, start, ref, alt, gene, aa_change FRpOM mysql.var_db.variants),"+
@@ -341,6 +364,8 @@ func selectCols(fields ...string) string {
 func selectLimit(val string) (limit string) {
 	if val != "" {
 		limit = "LIMIT " + val
+	} else {
+		limit = "LIMIT 1000"
 	}
 
 	return
