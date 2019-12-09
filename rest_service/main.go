@@ -235,12 +235,13 @@ func testJoin2(w http.ResponseWriter, r *http.Request) {
 
 	field := r.URL.Query().Get("limit")
 
-	queryString := fmt.Sprintf("WITH a AS (SELECT variant_id, patient_id FROM mysql.var_db.calls), b AS (SELECT code.text, subject.referenceid FROM mongodb.fhir.conditions), c AS (SELECT variant_id, chrom, start, ref, alt, gene, aa_change FROM mysql.var_db.variants), d AS (SELECT a.*, b.* FROM a JOIN b ON a.patient_id = b.referenceid) SELECT c.alt, c.chrom FROM d JOIN c ON d.variant_id = c.variant_id %s", selectLimit(field))
+	queryString := fmt.Sprintf("WITH a AS (SELECT variant_id, patient_id FROM mysql.var_db.calls), b AS (SELECT code.text, subject.referenceid FROM mongodb.fhir.conditions), c AS (SELECT variant_id, chrom, start, ref, alt, gene, aa_change FROM mysql.var_db.variants), d AS (SELECT a.*, b.* FROM a JOIN b ON a.patient_id = b.referenceid) SELECT c.aa_change, c.alt, c.chrom, c.start, c.variant_id FROM d JOIN c ON d.variant_id = c.variant_id %s", selectLimit(field))
 
 	// queryString := fmt.Sprintf("WITH a AS (SELECT variant_id, patient_id FROM mysql.var_db.calls),"+
-	// 	"c AS (SELECT variant_id, chrom, start, ref, alt, gene, aa_change FRpOM mysql.var_db.variants),"+
-	// 	"d AS (SELECT a.*, b.* FROM a JOIN b ON a.patient_id = b.referenceid)"+
-	// 	"SELECT c.*,d.* FROM d JOIN c ON d.variant_id = c.variant_id %s", selectLimit(field))
+	// 	" b AS (SELECT code.text, subject.referenceid FROM mongodb.fhir.conditions),"+
+	// 	" c AS (SELECT variant_id, chrom, start, ref, alt, gene, aa_change FRpOM mysql.var_db.variants),"+
+	// 	" d AS (SELECT a.*, b.* FROM a JOIN b ON a.patient_id = b.referenceid)"+
+	// 	" SELECT c.*,d.* FROM d JOIN c ON d.variant_id = c.variant_id %s", selectLimit(field))
 
 	rows, err := db.Queryx(queryString)
 	if err != nil {

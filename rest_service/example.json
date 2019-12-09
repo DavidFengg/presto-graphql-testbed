@@ -16,12 +16,24 @@
             "name": "test",
             "columns": [
                 {
+                    "name": "aa_change",
+                    "type": "VARCHAR"
+                },
+                {
                     "name": "alt",
                     "type": "VARCHAR"
                 },
                 {
                     "name": "chrom",
                     "type": "VARCHAR"
+                },
+                {
+                    "name": "start",
+                    "type": "BIGINT"
+                },
+                {
+                    "name": "variant_id",
+                    "type": "BIGINT"
                 }
             ],
             "sources": [
