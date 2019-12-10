@@ -4,15 +4,11 @@ RUN yum -y install java-1.8.0-openjdk
 RUN mkdir /data
 RUN mkdir -p /srv/presto/etc/catalog
 WORKDIR /srv/presto
-# RUN curl -O https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.218/presto-server-0.218.tar.gz
+
 RUN curl -O https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.229/presto-server-0.229.tar.gz
 RUN tar xvfz presto-server-0.229.tar.gz
 
-# RUN rm /srv/presto/presto-server-0.218/plugin/example-http/*
-# COPY rest-plugin/*.jar /srv/presto/presto-server-0.218/plugin/example-http/
-
-# RUN rm -r /srv/presto/presto-server-0.218/plugin/example-http
-
+# add rest-http connector to plugin
 RUN mkdir /srv/presto/presto-server-0.229/plugin/rest-http/
 COPY rest-plugin/*.jar /srv/presto/presto-server-0.229/plugin/rest-http/
 
