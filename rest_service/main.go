@@ -38,6 +38,7 @@ var err error
 
 // Go Presto Connector
 func main() {
+	// presto-go-client
 	dsn := "http://user@docker.for.mac.localhost:8080?catalog=default&schema=test"
 	db, err = sqlx.Open("presto", dsn)
 
@@ -56,11 +57,13 @@ func main() {
 	origins := handlers.AllowedOrigins([]string{"*"})
 
 	// routes
-	// tables should be individual endpoints?
 	router.HandleFunc("/", home).Methods("GET")
 	router.HandleFunc("/count", getCount).Methods("GET")
 	router.HandleFunc("/column", getColumn).Methods("GET")
+
+	// test prest connector with join
 	router.HandleFunc("/variants", getVariants).Methods("GET")
+	router.HandleFunc("/varient_end", getVarientEnd).Methods("GET")
 
 	router.HandleFunc("/samples", getSamples).Methods("GET")
 	router.HandleFunc("/samples/{id}", getSample).Methods("GET")
@@ -73,22 +76,22 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8000", handlers.CORS(headers, methods, origins)(router)))
 }
 
+// root directory has api schema as json response
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enableCORS(&w)
 
-	b, _ := ioutil.ReadFile("./example.json")
+	b, _ := ioutil.ReadFile("./schema.json")
 	rawIn := json.RawMessage(string(b))
 
 	var objmap map[string]*json.RawMessage
+
 	err := json.Unmarshal(rawIn, &objmap)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(objmap)
 
 	json.NewEncoder(w).Encode(objmap)
-	// json.NewEncoder(w).Encode("../example.json")
 }
 
 func getCount(w http.ResponseWriter, r *http.Request) {
@@ -255,6 +258,8 @@ func testJoin2(w http.ResponseWriter, r *http.Request) {
 		err = rows.MapScan(result)
 
 		data = append(data, result)
+
+		result = make(map[string]interface{})
 	}
 
 	fmt.Println("Sending Response Body...")
@@ -282,6 +287,38 @@ func getVariants(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(data)
+}
+
+// return json response of variant_id and end
+func getVarientEnd(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	enableCORS(&w)
+
+	queryString := fmt.Sprintf("SELECT variant_id, \"end\" FROM mysql.var_db.variants")
+
+	rows, err := db.Queryx(queryString)
+	if err != nil {
+		panic(err)
+	}
+
+	var data = make([]interface{}, 0)
+	var result = make(map[string]interface{})
+
+	for rows.Next() {
+		// map row to results dict/map
+		err = rows.MapScan(result)
+		// append results map to data array
+		data = append(data, result)
+		// clear result
+		result = make(map[string]interface{})
+
+	}
+
+	// send data array as response
+	json.NewEncoder(w).Encode(data)
+
+	// clear data
+	data = nil
 }
 
 func getSamples(w http.ResponseWriter, r *http.Request) {

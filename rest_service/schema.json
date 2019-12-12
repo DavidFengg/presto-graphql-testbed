@@ -40,5 +40,45 @@
                 "http://docker.for.mac.localhost:8000/test3v2"
             ]
         }
+    ],
+    "example2": [
+        {
+            "name": "variant",
+            "columns": [
+                {
+                    "name": "chrom",
+                    "type": "VARCHAR"
+                },
+                {
+                    "name": "start",
+                    "type": "BIGINT"
+                },
+                {
+                    "name": "end",
+                    "type": "BIGINT"
+                }
+            ],
+            "sources": [
+                "http://docker.for.mac.localhost:8000/variants"
+            ]
+        }
+    ],
+    "test_join": [
+        {
+            "name": "endt",
+            "columns": [
+                {
+                    "name": "variant_id",
+                    "type": "BIGINT"
+                },
+                {
+                    "name": "end",
+                    "type": "BIGINT" 
+                }
+            ],
+            "sources": [
+                "http://docker.for.mac.localhost:8000/varient_end"
+            ]
+        }
     ]
 }
