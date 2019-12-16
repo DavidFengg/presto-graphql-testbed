@@ -62,9 +62,10 @@ func main() {
 	router.HandleFunc("/column", getColumn).Methods("GET")
 
 	// test prest connector with join
-	router.HandleFunc("/variants", getVariants).Methods("GET")
-	router.HandleFunc("/varient_end", getVarientEnd).Methods("GET")
+	router.HandleFunc("/variant_start", getVariantStart).Methods("GET")
+	router.HandleFunc("/variant_end", getVariantEnd).Methods("GET")
 
+	router.HandleFunc("/variants", getVariants).Methods("GET")
 	router.HandleFunc("/samples", getSamples).Methods("GET")
 	router.HandleFunc("/samples/{id}", getSample).Methods("GET")
 
@@ -290,7 +291,7 @@ func getVariants(w http.ResponseWriter, r *http.Request) {
 }
 
 // return json response of variant_id and end
-func getVarientEnd(w http.ResponseWriter, r *http.Request) {
+func getVariantEnd(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enableCORS(&w)
 
@@ -318,6 +319,32 @@ func getVarientEnd(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(data)
 
 	// clear data
+	data = nil
+}
+
+// return json response of variant_id and start
+func getVariantStart(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	enableCORS(&w)
+
+	queryString := fmt.Sprintf("SELECT variant_id, start FROM mysql.var_db.variants")
+
+	rows, err := db.Queryx(queryString)
+	if err != nil {
+		panic(err)
+	}
+
+	var data = make([]interface{}, 0)
+	var result = make(map[string]interface{})
+
+	for rows.Next() {
+		err = rows.MapScan(result)
+		data = append(data, result)
+		result = make(map[string]interface{})
+	}
+
+	json.NewEncoder(w).Encode(data)
+
 	data = nil
 }
 

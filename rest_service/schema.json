@@ -65,19 +65,37 @@
     ],
     "test_join": [
         {
-            "name": "endt",
+            "name": "end",
             "columns": [
                 {
-                    "name": "variant_id",
+                    "name": "end",
                     "type": "BIGINT"
                 },
                 {
-                    "name": "end",
+                    "name": "variant_id",
                     "type": "BIGINT" 
                 }
             ],
             "sources": [
-                "http://docker.for.mac.localhost:8000/varient_end"
+                "http://docker.for.mac.localhost:8000/variant_end"
+            ]
+        }
+    ],
+    "test_join2": [
+        {
+            "name": "start",
+            "columns": [
+                {
+                    "name": "end",
+                    "type": "BIGINT"
+                },
+                {
+                    "name": "variant_id",
+                    "type": "BIGINT"
+                }
+            ],
+            "sources": [
+                "http://docker.for.mac.localhost:8000/variant_start"
             ]
         }
     ]
