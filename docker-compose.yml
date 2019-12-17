@@ -38,10 +38,10 @@ services:
       - mongo
       - mysql
 
-  api:
-    container_name: api
+  rest_api:
+    container_name: rest_api
     build: ./rest_service
-    restart: always
+    restart: unless-stopped
     ports:
       - "8000:8000"
 
@@ -54,27 +54,16 @@ services:
     links:
       - mongo
       - mysql
-      - api
+      - rest_api
     depends_on:
       - mongo
       - mysql
-      - api
+      - rest_api
 
   # worker:
   #   container_name: worker
   #   build: ./worker
   #   restart: unless-stopped
-
-  # connector:
-  #   container_name: connector
-  #   build: ./connector
-  #   restart: always
-  #   ports:
-  #     - "5000:5000"
-  #   links:
-  #     - api
-  #   depends_on:
-  #     - api
 
   admin-mongo:
     image: 0x59/admin-mongo:latest

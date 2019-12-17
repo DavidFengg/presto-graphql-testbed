@@ -8,7 +8,7 @@ across different types of data stores.  A diagram showing services and localhost
 
 This currently borrows heavily from https://github.com/medaymenTN/NodeJsGraphQLDockerApp .
 
-## Requirments 
+## Requirements 
 
 You will need docker and docker-compose installed on your machine.  In addition, to add the
 test data to the services you will need local installs of mongodb and a mysql client. `jq` isn't
