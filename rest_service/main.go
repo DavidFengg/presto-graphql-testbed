@@ -36,24 +36,20 @@ func enableCORS(w *http.ResponseWriter) {
 var db *sqlx.DB
 var err error
 
-// Go Presto Connector
 func main() {
 	// presto-go-client
 	dsn := "http://user@docker.for.mac.localhost:8080?catalog=default&schema=test"
 	db, err = sqlx.Open("presto", dsn)
 
 	if err != nil {
-		for err != nil {
-			db, err = sqlx.Open("presto", dsn)
-		}
-		// panic(err.Error())
+		panic(err.Error())
 	}
 
 	fmt.Println("Server is running")
 
 	router := mux.NewRouter()
 	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
-	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
+	methods := handlers.AllowedMethods([]string{"GET"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
 	// routes
@@ -61,7 +57,7 @@ func main() {
 	router.HandleFunc("/count", getCount).Methods("GET")
 	router.HandleFunc("/column", getColumn).Methods("GET")
 
-	// test prest connector with join
+	// endpoints to test presto connector with joins across different endpoints
 	router.HandleFunc("/variant_start", getVariantStart).Methods("GET")
 	router.HandleFunc("/variant_end", getVariantEnd).Methods("GET")
 
@@ -77,7 +73,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8000", handlers.CORS(headers, methods, origins)(router)))
 }
 
-// root directory has api schema as json response
+// root url exposes the api schema of the rest api as a json response
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enableCORS(&w)
@@ -180,7 +176,6 @@ func test2(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enableCORS(&w)
 
-	// var id []int64
 	id := make(map[string]interface{})
 
 	// fetch a slice of a result
@@ -241,12 +236,6 @@ func testJoin2(w http.ResponseWriter, r *http.Request) {
 
 	queryString := fmt.Sprintf("WITH a AS (SELECT variant_id, patient_id FROM mysql.var_db.calls), b AS (SELECT code.text, subject.referenceid FROM mongodb.fhir.conditions), c AS (SELECT variant_id, chrom, start, ref, alt, gene, aa_change FROM mysql.var_db.variants), d AS (SELECT a.*, b.* FROM a JOIN b ON a.patient_id = b.referenceid) SELECT c.aa_change, c.alt, c.chrom, c.start, c.variant_id FROM d JOIN c ON d.variant_id = c.variant_id %s", selectLimit(field))
 
-	// queryString := fmt.Sprintf("WITH a AS (SELECT variant_id, patient_id FROM mysql.var_db.calls),"+
-	// 	" b AS (SELECT code.text, subject.referenceid FROM mongodb.fhir.conditions),"+
-	// 	" c AS (SELECT variant_id, chrom, start, ref, alt, gene, aa_change FRpOM mysql.var_db.variants),"+
-	// 	" d AS (SELECT a.*, b.* FROM a JOIN b ON a.patient_id = b.referenceid)"+
-	// 	" SELECT c.*,d.* FROM d JOIN c ON d.variant_id = c.variant_id %s", selectLimit(field))
-
 	rows, err := db.Queryx(queryString)
 	if err != nil {
 		panic(err)
@@ -274,8 +263,6 @@ func testJoin2(w http.ResponseWriter, r *http.Request) {
 func getVariants(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enableCORS(&w)
-
-	// var data = make([]interface{}, 0)
 
 	// requires struct definition before complilation
 	data := []Variant{}
@@ -312,7 +299,6 @@ func getVariantEnd(w http.ResponseWriter, r *http.Request) {
 		data = append(data, result)
 		// clear result
 		result = make(map[string]interface{})
-
 	}
 
 	// send data array as response
